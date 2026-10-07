@@ -1,0 +1,2 @@
+{"name": "rg-loop", "version": "0.0.1", "title": "robo grid loop test", "author": "mtopfox", "factorio_version": "2.0",
+ "dependencies": ["base", "robo-grid"]}

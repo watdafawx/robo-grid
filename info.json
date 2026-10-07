@@ -1,0 +1,11 @@
+{
+  "name": "robo-grid",
+  "version": "0.1.8",
+  "title": "Robo Grid",
+  "author": "mtopfox",
+  "factorio_version": "2.0",
+  "description": "Grows your robot network on a square grid to wherever you build (or over an area you select): roboport ghosts edge-first, a pole chain to power each, construction bots requested for it. Tidies roboports made redundant as roboports gain quality. Safe to add or remove at any time.",
+  "dependencies": [
+    "base >= 2.0"
+  ]
+}
