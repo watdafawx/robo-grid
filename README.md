@@ -22,7 +22,7 @@ Copy this folder into your mods folder (`%APPDATA%\Factorio\mods`) as `robo-grid
 git clone https://github.com/watdafawx/robo-grid
 ```
 
-`test\run.py` runs the headless tests (set `FACTORIO_EXE` if the game isn't in a usual Steam library).
+`test\run.py` runs the headless test (`test\run.py --all`: both cases at once) (set `FACTORIO_EXE` if the game isn't in a usual Steam library).
 
 ## License
 
