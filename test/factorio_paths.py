@@ -87,10 +87,83 @@ def run_dir(path):
 BASE_MODS = ["base", "elevated-rails", "quality", "space-age"]
 
 
+def _repo():
+    """this dev repo's root (the folder with fse/mods and mods/), or None"""
+    for p in Path(__file__).resolve().parents:
+        if (p / "fse" / "mods").is_dir() and (p / "mods").is_dir():
+            return p
+    return None
+
+
+def _info(src):
+    """a mod's info.json (folder or zip), {} when it can't be read"""
+    try:
+        if src.is_dir():
+            return json.loads((src / "info.json").read_text(encoding="utf-8-sig"))
+        import zipfile
+        with zipfile.ZipFile(src) as z:
+            inner = min((n for n in z.namelist() if n.count("/") == 1 and n.endswith("/info.json")), key=len)
+            return json.loads(z.read(inner).decode("utf-8-sig"))
+    except Exception:  # (OSError, bad JSON, a broken zip)
+        return {}
+
+
+def source_mods():
+    """our own mods in this repo, {info.json name: folder}: fse/mods/*, mods/*, bpgen/mod/*"""
+    root, found = _repo(), {}
+    if root:
+        for parent in (root / "fse" / "mods", root / "mods", root / "bpgen" / "mod"):
+            for d in sorted(parent.glob("*/info.json")):
+                found.setdefault(_info(d.parent).get("name") or d.parent.name, d.parent)
+    return found
+
+
+def _bare(path):
+    """a mod's file name without .zip (a folder <name>_1.2.3 keeps its last number: Path.stem would drop it)"""
+    return path.stem if path.suffix == ".zip" else path.name
+
+
+def _version_key(path):
+    return [int(n) for n in re.findall(r"\d+", _bare(path))]
+
+
 def user_mod(name):
-    """the newest <name>_*.zip in the game's own mods folder"""
-    zips = PATHS["user_mods"].glob(name + "_*.zip")
-    return max(zips, key=lambda z: [int(n) for n in re.findall(r"\d+", z.stem)])
+    """the mod `name` for a test (--with): our source folder in this repo (by info.json name, else folder name), else
+    from the game's own mods folder: a folder <name> or <name>_<version> (the newest), else the newest <name>_*.zip"""
+    ours = source_mods()
+    if name in ours:
+        return ours[name]
+    root = _repo()
+    for parent in ((root / "fse" / "mods", root / "mods", root / "bpgen" / "mod") if root else ()):
+        if (parent / name / "info.json").exists():
+            return parent / name
+    um = PATHS["user_mods"]
+    if (um / name / "info.json").exists():
+        return um / name
+    found = [p for p in um.glob(name + "_*") if (p / "info.json").exists() or p.suffix == ".zip"]
+    found = [p for p in found if re.fullmatch(re.escape(name) + r"_\d+\.\d+\.\d+", _bare(p))]
+    if not found:
+        raise FileNotFoundError(f"mod {name!r}: not in this repo (fse/mods, mods, bpgen/mod) nor in {um}")
+    return max(found, key=_version_key)
+
+
+def with_deps(mods, have=()):
+    """`mods` ({name: folder or zip}) plus the mods they require (info.json dependencies without ?/(?)/!), found
+    by user_mod; the game's own mods and the names in `have` are left out, so are ones that can't be found"""
+    out, todo, skip = dict(mods), list(mods), {"core", *BASE_MODS, *have}
+    while todo:
+        for dep in _info(out[todo.pop()]).get("dependencies", []):
+            dep = dep.strip()
+            if dep[:1] in "?!(":
+                continue
+            name = re.split(r"\s*(?:[<>=]=?)\s*", dep.lstrip("~ ").strip())[0].strip()
+            if name and name not in skip and name not in out:
+                try:
+                    out[name] = user_mod(name)
+                except (FileNotFoundError, ValueError):
+                    continue
+                todo.append(name)
+    return out
 
 
 def stage_mods(md, mods, base=BASE_MODS):
@@ -407,7 +480,7 @@ def headless(run, mods, case, ticks, base=BASE_MODS, save=None, timeout=None):
 
 def main(run_py, cases, base=BASE_MODS, user_mods=()):
     """A mod's test/run.py. `cases` is {case: ticks}, the first one the default.
-      run.py [CASE [TICKS]] [--with MOD]   one case in test/run (MOD: another mod from the game's own mods folder)
+      run.py [CASE [TICKS]] [--with MOD]   one case in test/run (MOD: another mod, see user_mod)
       run.py --all [-j N]                  every case, N games at once (default 4), each in test/run/all/<case>
     A case stops early once its result ends in "ALL PASS" / "<n> FAILED". --timeout S: a case still running after
     S seconds is a HANG (default 1 min + 1 s per 300 ticks). --seed N: play on another map (random: a new one).
@@ -425,7 +498,12 @@ def main(run_py, cases, base=BASE_MODS, user_mods=()):
     ap.add_argument("--timeout", type=float)
     ap.add_argument("--seed", default=str(TEST_SEED))
     a = ap.parse_args()
-    extra = {n: user_mod(n) for n in [*user_mods, *a.extra]}
+    # (keyed by info.json name: --with trash-slot finds mods/trash-slot, which the game knows as wx-trash-slot)
+    extra = {}
+    for n in [*user_mods, *a.extra]:
+        src = user_mod(n)
+        extra[_info(src).get("name") or n] = src
+    extra = with_deps(extra, have=[mod_name])
     seed = random.randrange(2 ** 32) if a.seed == "random" else int(a.seed)
     save = base_save(here / "run", base, seed)
     if seed != TEST_SEED:

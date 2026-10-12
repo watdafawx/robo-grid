@@ -1,0 +1,6 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.1.9
+Date: 2026-10-12
+  Changes:
+    - With GUI Unifyer, the mod button bar's toggles take its button style (its lit style while on), like the
+      buttons it knows.

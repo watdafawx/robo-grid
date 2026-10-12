@@ -9,6 +9,7 @@ A Factorio 2.0 mod that grows your robot network on a square grid to wherever yo
   others now cover completely (as roboports gain quality).
 - **Auto-tidy** (lit button): roboports made redundant by an upgraded roboport are removed by robots, and so are
   empty grid roboports and leftover pole chains this mod built. Roboports you placed yourself are never removed.
+- With **GUI Unifyer**, the buttons in the top-left mod bar take its button style (lit while on), like the buttons it knows.
 
 Map settings: the roboport and pole to use, robots per new roboport, how far to grow, distance kept from enemies,
 which buildings don't pull the network (turrets, mines, vehicles by default), the grid overlap.
