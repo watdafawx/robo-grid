@@ -414,6 +414,7 @@ def main(run_py, cases, base=BASE_MODS, user_mods=()):
     Exits 1 when a case fails, crashes or hangs."""
     here = Path(run_py).resolve().parent
     mod = here.parent
+    mod_name = json.loads((mod / "info.json").read_text(encoding="utf-8"))["name"]  # (may differ from the folder's)
     ap = argparse.ArgumentParser(usage=main.__doc__.splitlines()[1].strip() + "\n       "
                                  + main.__doc__.splitlines()[2].strip())
     ap.add_argument("case", nargs="?", default=next(iter(cases)))
@@ -432,7 +433,7 @@ def main(run_py, cases, base=BASE_MODS, user_mods=()):
 
     def one(case, ticks, run):
         try:
-            return headless(run, {mod.name: mod, **extra, case: here / case}, case, ticks, base, save, a.timeout)
+            return headless(run, {mod_name: mod, **extra, case: here / case}, case, ticks, base, save, a.timeout)
         except Exception:  # (a broken case shouldn't take the other cases down with it)
             return "FAIL", traceback.format_exc()
 
