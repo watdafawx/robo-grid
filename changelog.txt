@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.1.10
+Date: 2026-10-14
+  Changes:
+    - With GUI Unifyer, the mod button bar's toggles are also lit (toggled) while on: some of its lit styles (the transparent
+      one) draw the same as the plain one, so it looked off.
+---------------------------------------------------------------------------------------------------
 Version: 0.1.9
 Date: 2026-10-12
   Changes:
