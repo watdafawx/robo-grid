@@ -1,6 +1,6 @@
 # Robo Grid
 
-A Factorio 2.0 mod that grows your robot network on a square grid to wherever you build.
+A Factorio 2.1 mod that grows your robot network on a square grid to wherever you build.
 
 - **Auto-grow** (lit button on the shortcut bar): build, or place a ghost, outside the robot network and the
   network grows toward it: roboport ghosts on the grid, edge-first, each with a pole chain to power it, and

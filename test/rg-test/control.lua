@@ -38,7 +38,7 @@ script.on_nth_tick(5, function(ev)
   remote.call("robo-grid", "request", s, f, { x = 150, y = 2 })
   -- a biter nest: a request 20 tiles from it is dropped, nothing is built there
   local nest = s.create_entity({ name = "biter-spawner", position = { 230, 100 }, force = "enemy" })
-  nest.active = false
+  nest.disabled_by_script = true
   remote.call("robo-grid", "request", s, f, { x = 210, y = 100 })
   -- a roboport without power, with bots: nothing may grow from it (its bots couldn't charge)
   local dead = s.create_entity({ name = "roboport", position = { 2, -80 }, force = f })
